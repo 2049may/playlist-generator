@@ -1,1 +1,1 @@
-installer graphviz et les autres dépendances. si besoin (si erreur) préciser le PATH dans la variable correspondante. 
+# playlist-generator
