@@ -7,11 +7,6 @@ Il est demandé à l'utilisateur de choisir un artiste sur lequel baser le reste
 
 Les informations des artistes sont récupérées via l'API Spotify et celle de Lastfm.
 
-### Problème rencontré 
-<!-- à mettre dans le rapport plutot -->
-Originellement, seulement l'API de Spotify devait être utilisée pour toutes les requêtes. Cependant, en novembre 2024 Spotify a fait quelques changements au niveau de son API, notamment en dépréciant l'endpoint permettant de récuperer des artistes similaires à un artiste donné. Le projet reposant grandement sur cela, il a a fallu trouver une alternative : l'api de Lastfm.
-
-
 ## Avant d'exécuter
 
 ### Installation modules

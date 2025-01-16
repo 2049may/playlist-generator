@@ -32,9 +32,9 @@ class Noeud() :
         return 1+max(h1, h2)
 
     def recherche(self, valeur, dict=False):
-        '''recherche une valeur dans l'arbre et renvoie le noeud correspondant'''
-        print(f"Searching for {valeur} in node with value {self.valeur}")
-
+        '''recherche une valeur dans l'arbre et renvoie le noeud correspondant, None sinon
+        dict : si True, les noeuds sont des dictionnaires, sinon des valeurs simples
+        '''
         if dict:
             if self.valeur['name'] == valeur:
                 print(f"Noeud trouvé : {self.valeur}")

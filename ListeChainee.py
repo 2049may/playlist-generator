@@ -1,4 +1,7 @@
 class Maillon() :
+    '''
+    Un maillon est un élément d'une liste chaînée. Il contient une valeur et un pointeur vers le maillon suivant.
+    '''
 
     def __init__(self, valeur=None):
         self.valeur = valeur
@@ -10,6 +13,7 @@ class ListeChainee() :
         self.tete = tete
 
     def est_vide(self) :
+        '''renvoie True si la liste est vide'''
         return self.tete is None
 
     def taille(self) :
@@ -50,7 +54,7 @@ class ListeChainee() :
             self.tete.suivant = ptr
     
     def ajouter_fin(self, val) :
-        '''ajoute un maillon de valeur val à la fin de la liste (pas trop efficace mais bon)'''
+        '''ajoute un maillon de valeur val à la fin de la liste (operation couteuse)'''
         m = Maillon(val)
         if self.tete is None :
             self.tete = m
@@ -64,8 +68,7 @@ class ListeChainee() :
     
     def get_maillon_indice(self, i) :
         '''renvoie le maillon à l'indice i'''
-        if i > self.taille() :
-            # print("l'indice est trop grand")
+        if i >= self.taille() :
             return None
         else :
             if self.tete is not None :
@@ -117,33 +120,38 @@ if __name__ == "__main__" :
     liste = ListeChainee(m1)
     liste2 = ListeChainee()
 
-    # print(m1.valeur)
-    # print(m2.valeur)
+    print("m1 = ", m1.valeur)
+    print("m2 = ", m2.valeur)
 
-    # print("taille : ", liste.taille())
-    # print(liste.est_vide())
-    # print("taille : ", liste2.taille())
-    # print(liste2.est_vide())
-    # print(liste.get_dernier_maillon())
+    print("taille : ", liste.taille())
+    print(liste.est_vide())
+    print("taille : ", liste2.taille())
+    print(liste2.est_vide())
+    print(liste.get_dernier_maillon())
     print("--liste 1--")
-    # liste.afficher_liste()
+    liste.afficher_liste()
     liste.ajouter_fin(2)
-    # liste.afficher_liste()
+    liste.afficher_liste()
     liste.ajouter_debut(6)
-    # liste.afficher_liste()
-    # liste.supprimer_debut()
+    liste.afficher_liste()
+    liste.supprimer_debut()
     liste.afficher_liste()
     liste.supprimer_fin()
     liste.afficher_liste()
-    # print(liste.get_maillon_indice(3))
+    print(liste.get_maillon_indice(2))
 
     print()
     print("--liste 2--")
-    # liste2.ajouter_au_debut(6)
+    
+    liste2.afficher_liste()
+    liste2.ajouter_debut(3)
+    liste2.ajouter_debut(3)
+    liste2.ajouter_debut(3)
+    liste2.afficher_liste()
     liste2.supprimer_fin()
-    liste2.ajouter_fin(1)
-    # liste2.afficher_liste()
+    liste2.ajouter_fin(2)
+    liste2.afficher_liste()
     liste2.supprimer_debut()
-    # liste2.afficher_liste()
-    # print(liste2.get_maillon_indice(2))
+    liste2.afficher_liste()
+    print(liste2.get_maillon_indice(2))
     

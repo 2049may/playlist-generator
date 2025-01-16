@@ -39,10 +39,10 @@ def get_similar_artists(artist_name, filter) :
     r = lastfm_get({'method': 'artist.getsimilar', 'artist': artist_name, 'limit': 30})
     similar_artists = r.json()
     
-    # Filter out artists that are in the filter list
+    # filtrer les artistes déjà choisis
     filtered_artists = [artist for artist in similar_artists['similarartists']['artist'] if artist['name'] not in filter]
     
-    # Return the filtered list in the same format
+    # retourner le résultat dans le même format
     return {'similarartists': {'artist': filtered_artists}}
 
 def print_similar_artists(json, debut=0, fin=10):
@@ -55,11 +55,29 @@ def print_similar_artists(json, debut=0, fin=10):
     for i in range(debut, min(fin, len(artists))):
         print(f"\t{i + 1} - {artists[i]['name']}")
     
+def get_match(artist1, artist2) :
+    '''
+    artist1 : nom de l'artiste 1
+    artist2 : nom de l'artiste 2
+    return : pourcentage de similarité entre les deux artistes
+    '''
+    r = lastfm_get({'method': 'artist.getsimilar', 'artist': artist1, 'limit': 30})
+    similar_artists = r.json()
+    
+    artists = similar_artists['similarartists']['artist']
+    for artist in artists :
+        if artist['name'] == artist2 :
+            return artist['match']
+    
+    return 0
 
 
 if __name__ == "__main__" :
-    r = get_similar_artists("Jiwoo")
-    print(r)
+    # r = get_similar_artists("Jiwoo")
+    # print(r)
     # print(r['similarartists']['artist'][0])
     # print_similar_artists(r)
 
+    print(get_match("Tabber", "DPR LIVE"))
+    print(get_match("Tabber", "Balming Tiger"))
+    print(get_match("Tabber", "Sik-K"))

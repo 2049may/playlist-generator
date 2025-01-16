@@ -39,7 +39,7 @@ def main() :
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
     query = "Tabber"
     result_type = "artist" # type de résultat recherché
-    nb_max = 6 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    nb_max = 12 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
 
     results = sp.search(q=query, type=result_type, limit=5) 
 
@@ -306,7 +306,7 @@ def get_artist_by_name(name):
     '''
     candidats = sp.search(q=name, type='artist', limit=2)
     for artist in candidats['artists']['items']:
-        if artist['name'] == name:
+        if artist['name'].lower() == name.lower() :
             return artist
 
 def display_tree_graphviz(root):
@@ -391,12 +391,14 @@ def create_playlist(playlist_name) :
 
 
 if __name__ == "__main__" :
-    main()
-    # drake = sp.search(q="Tyler, the creator", type="artist", limit=2)
-    # for artist in drake['artists']['items']:
-    #     print(artist['name'])
+    # main()
+    # bibi = sp.search(q="Bibi", type="artist", limit=5)
+    # for artist in bibi['artists']['items']:
+    #     print(artist['name'], artist['genres'])
+
+    print(get_artist_by_name("Bibi"))
     # print(drake['artists'] ['items'][0]['name'])
-    top_tracks = get_artist_top_tracks("spotify:artist:0qQI2kmsvSe2ex9k94T5vu")
+    # top_tracks = get_artist_top_tracks("spotify:artist:0qQI2kmsvSe2ex9k94T5vu")
     
     # print every key in the catalog
     # for key in top_tracks['tracks'][0].keys():
