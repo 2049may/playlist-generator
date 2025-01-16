@@ -7,6 +7,7 @@ import File
 import graphviz
 import cred
 import random
+import time
 
 # erreur de path, donc ajout du path de graphviz manuellement
 os.environ["PATH"] += os.pathsep + r"C:\Program Files\Graphviz\bin"
@@ -35,7 +36,7 @@ def main() :
     '''
     
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
-    query = "Tabber"
+    query = "Soyoon"
     result_type = "artist" # type de résultat recherché
     nb_max = 7 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
 
@@ -59,12 +60,20 @@ def main() :
         k += 1
         print()
 
-    choix = int(input("Choisissez l'artiste que vous recherchez (saisir son numéro) : "))-1
-    print()
+    choix = -1
+    while choix < 0 or choix >= len(results['artists']['items']):    
+        try :
+            choix = int(input("Choisissez l'artiste que vous recherchez (saisir son numéro) : "))-1
+            if choix < 0 or choix >= len(results['artists']['items']):
+                raise ValueError("Invalid artist number")
+        except ValueError:
+            print("Veuillez entrer un nombre valide.")
+        print()
 
     print(f"Vous avez choisi {results['artists']['items'][choix]['name']}")
     print()
     print("=============================================================")
+    time.sleep(1)
 
     # on definit la racine de l'arbre
     root_name = results['artists']['items'][choix]['name']
@@ -89,7 +98,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
     print("nb noeuds : ", nb_noeuds)
     file = File.File()
     file.enfiler((noeud, 1))
-    artistes_choisis = []
+    artistes_choisis = [root.valeur['name']]
     niveau = 0
 
     while not file.est_vide() and nb_noeuds < nb_max:
@@ -98,7 +107,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
         if niveau >= 4 :
             continue
 
-        json_artistes = lastfm.get_similar_artists(noeud.valeur['name'])
+        json_artistes = lastfm.get_similar_artists(noeud.valeur['name'], artistes_choisis)
         debut = 0
         choisi = False
 
@@ -106,7 +115,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
         print()
 
         while not choisi:
-            lastfm.print_similar_artists(json_artistes, artistes_choisis, debut, debut + 10)
+            lastfm.print_similar_artists(json_artistes, debut, debut + 10)
             print()
             choix = input("Veuillez selectionner deux artistes que vous souhaitez conserver (taper les deux numéros séparés d'un espace \n0 pour voir d'autres artistes) : ")
             print()
@@ -119,8 +128,24 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
                     debut = 0
                 continue
 
-            fg, fd = choix.split(" ")
-            fg, fd = int(fg) - 1, int(fd) - 1
+            try:
+                fg, fd = choix.split(" ")
+                if len(fg) == 0 or len(fd) == 0:
+                    raise ValueError("Invalid number of arguments")
+                fg, fd = int(fg) - 1, int(fd) - 1
+
+                if fg < 0 or fd < 0 or fg >= len(json_artistes['similarartists']['artist']) or fd >= len(json_artistes['similarartists']['artist']):
+                    raise ValueError("Invalid artist number")
+            
+            except ValueError:
+                print("==============================================================================")
+                print("Entrée invalide. Veuillez entrer deux numéros valides séparés par un espace.")
+                print()
+                continue
+            except Exception:
+                print("==============================================================================")
+                print("Entrée invalide. Veuillez entrer exactement deux numéros séparés par un espace.")
+                continue
 
             nom_gauche = json_artistes['similarartists']['artist'][fg]['name']
             nom_droit = json_artistes['similarartists']['artist'][fd]['name']
@@ -128,14 +153,14 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
             print("Vous avez choisi : " + nom_gauche + " et " + nom_droit)
             print()
 
+            time.sleep(0.5)
+
             artistes_choisis.append(nom_gauche)
             artistes_choisis.append(nom_droit)
             
             print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
             continuer = int(input("Continuer ? (1 pour continuer, 0 pour supprimer un artiste) : "))
             print()
-
-            print("nb noeuds : ",nb_noeuds)
 
             # TODO : supprimer un artiste
             # donc parcourir l'arbre pour trouver le noeud à supprimer, si pas une feuille, le supprimer et switch avec une feuille
@@ -159,20 +184,62 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
             artiste_droit = get_artist_by_name(nom_droit)
 
             if artiste_gauche is None :
+                artistes_choisis.remove(nom_gauche)
                 print("Impossible de trouver l'artiste " + nom_gauche)
                 lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-                choix = input("Veuillez choisir un autre artiste : ")
-                print()
-                nom_gauche = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
-                artiste_gauche = get_artist_by_name(nom_gauche)
+
+                while artiste_gauche is None:
+                    try:
+                        choix = input("Veuillez choisir un autre artiste : ")
+                        print()
+
+                        if len(choix.split()) != 1:
+                            raise ValueError("Invalid number of arguments")
+                        
+                        choix = int(choix)
+                        nom_gauche = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
+                        artiste_gauche = get_artist_by_name(nom_gauche)
+
+                        print("Vous avez choisi : " + nom_gauche)
+
+                        artistes_choisis.append(nom_gauche)
+
+                        print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+                        time.sleep(0.5)
+
+                    except (ValueError, IndexError):
+                        print("Veuillez entrer un nombre valide.")
+                        continue
+
 
             if artiste_droit is None :
+                artistes_choisis.remove(nom_droit)
                 print("Impossible de trouver l'artiste " + nom_droit)
                 lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-                choix = input("Veuillez choisir un autre artiste : ")
-                print()
-                nom_droit = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
-                artiste_droit = get_artist_by_name(nom_droit)
+
+                while artiste_droit is None:
+                    try:
+                        choix = input("Veuillez choisir un autre artiste : ")
+                        print()
+
+                        if len(choix.split()) != 1:
+                            raise ValueError("Invalid number of arguments")
+                        
+                        choix = int(choix)
+                        nom_droit = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
+                        artiste_droit = get_artist_by_name(nom_droit)
+
+                        print("Vous avez choisi : " + nom_droit)
+
+                        artistes_choisis.append(nom_droit)
+
+                        print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+                        time.sleep(0.5)
+
+                    except (ValueError, IndexError):
+                        print("Veuillez entrer un nombre valide.")
+                        continue
+
 
             fg_node = Noeud({'name': artiste_gauche['name'], 'uri': artiste_gauche['uri']})
             fd_node = Noeud({'name': artiste_droit['name'], 'uri': artiste_droit['uri']})
@@ -182,7 +249,6 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
 
             nb_noeuds += 2
             choisi = True
-
             print()
 
             file.enfiler((fg_node, niveau + 1))

@@ -30,16 +30,22 @@ def jprint(obj) :
     text = json.dumps(obj, sort_keys=True, indent=4)
     print(text)
 
-def get_similar_artists(artist_name) :
+def get_similar_artists(artist_name, filter) :
     '''
     artist_name : nom de l'artiste
+    filter : liste des noms des artistes déjà choisis
     return : liste des artistes similaires format json
     '''
     r = lastfm_get({'method': 'artist.getsimilar', 'artist': artist_name, 'limit': 30})
-    # print(r.status_code)
-    return r.json()
+    similar_artists = r.json()
+    
+    # Filter out artists that are in the filter list
+    filtered_artists = [artist for artist in similar_artists['similarartists']['artist'] if artist['name'] not in filter]
+    
+    # Return the filtered list in the same format
+    return {'similarartists': {'artist': filtered_artists}}
 
-def print_similar_artists(json, liste_artistes, debut=0, fin=10):
+def print_similar_artists(json, debut=0, fin=10):
     '''
     json : liste des artistes similaires format json
     start : index de début
