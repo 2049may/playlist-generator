@@ -36,4 +36,6 @@ projet fonctionnel overall, reste la gestion d'erreurs, ne pas mettre le meme ar
 regeneration de noeuds
 tester si ça fonctionne avec un autre compte ptdrrrrr
 
+installer graphviz et les autres dépendances. si besoin (si erreur) préciser le PATH dans la variable correspondante. 
+
 '''

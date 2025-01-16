@@ -6,6 +6,7 @@ import requests_cache
 import File
 import graphviz
 import cred
+import random
 
 # erreur de path, donc ajout du path de graphviz manuellement
 os.environ["PATH"] += os.pathsep + r"C:\Program Files\Graphviz\bin"
@@ -22,16 +23,21 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.SPOTIFY_CLIENT_ID,
                                                redirect_uri="http://127.0.0.1:9090",
                                                scope="user-library-read playlist-modify-public playlist-modify-private"))
 
+#TODO : gestion d'erreurs, ne pas mettre le meme artiste 2 fois
+#TODO : si un artiste n'a pas de similar artists, soit : 
+#                   * la branche s'arrete et on parcourt les autres noeuds jusqu'à ce qu'on ait 15 artistes (plutot ça je pense)
+#                   * soit on regénère un noeud
 
 def main() :
+    global root
     '''
     Fonction principale
     '''
     
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
-    query = "The weekend"
+    query = "Tabber"
     result_type = "artist" # type de résultat recherché
-    nb_max = 15 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    nb_max = 7 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
 
     results = sp.search(q=query, type=result_type, limit=5) 
 
@@ -49,7 +55,7 @@ def main() :
         else:
             genres = "Genres: Unknown"
         # print(f"{k} - {artist['name']}, {genres}, URI: {artist['uri']}")
-        print(f"{k} - {artist['name']}, {genres}")
+        print(f"\t{k} - {artist['name']}, {genres}")
         k += 1
         print()
 
@@ -58,6 +64,7 @@ def main() :
 
     print(f"Vous avez choisi {results['artists']['items'][choix]['name']}")
     print()
+    print("=============================================================")
 
     # on definit la racine de l'arbre
     root_name = results['artists']['items'][choix]['name']
@@ -82,8 +89,8 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
     print("nb noeuds : ", nb_noeuds)
     file = File.File()
     file.enfiler((noeud, 1))
+    artistes_choisis = []
     niveau = 0
-    # root = noeud
 
     while not file.est_vide() and nb_noeuds < nb_max:
         noeud, niveau = file.defiler()
@@ -99,7 +106,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
         print()
 
         while not choisi:
-            lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+            lastfm.print_similar_artists(json_artistes, artistes_choisis, debut, debut + 10)
             print()
             choix = input("Veuillez selectionner deux artistes que vous souhaitez conserver (taper les deux numéros séparés d'un espace \n0 pour voir d'autres artistes) : ")
             print()
@@ -121,8 +128,51 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
             print("Vous avez choisi : " + nom_gauche + " et " + nom_droit)
             print()
 
+            artistes_choisis.append(nom_gauche)
+            artistes_choisis.append(nom_droit)
+            
+            print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+            continuer = int(input("Continuer ? (1 pour continuer, 0 pour supprimer un artiste) : "))
+            print()
+
+            print("nb noeuds : ",nb_noeuds)
+
+            # TODO : supprimer un artiste
+            # donc parcourir l'arbre pour trouver le noeud à supprimer, si pas une feuille, le supprimer et switch avec une feuille
+
+            # if continuer == 0:
+            #     for artist in artistes_choisis:
+            #         print("\t",artistes_choisis.index(artist) + 1, "-", artist)
+            #     suppr = int(input("Quel artiste voulez-vous supprimer ? (saisir son numéro) : "))
+            #     artistes_choisis.pop(suppr - 1)
+
+            #     print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+            #     print()
+            #     lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+            #     print()
+            #     print("Veuillez selectionner un nouvel artiste (taper son numéro) : ")
+
+
+            print("nb noeuds : ",nb_noeuds)
+
             artiste_gauche = get_artist_by_name(nom_gauche)
             artiste_droit = get_artist_by_name(nom_droit)
+
+            if artiste_gauche is None :
+                print("Impossible de trouver l'artiste " + nom_gauche)
+                lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+                choix = input("Veuillez choisir un autre artiste : ")
+                print()
+                nom_gauche = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
+                artiste_gauche = get_artist_by_name(nom_gauche)
+
+            if artiste_droit is None :
+                print("Impossible de trouver l'artiste " + nom_droit)
+                lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+                choix = input("Veuillez choisir un autre artiste : ")
+                print()
+                nom_droit = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
+                artiste_droit = get_artist_by_name(nom_droit)
 
             fg_node = Noeud({'name': artiste_gauche['name'], 'uri': artiste_gauche['uri']})
             fd_node = Noeud({'name': artiste_droit['name'], 'uri': artiste_droit['uri']})
@@ -132,13 +182,13 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
 
             nb_noeuds += 2
             choisi = True
-            print("nb noeuds : ",nb_noeuds)
 
-            # display_tree_with_graphviz(root)
             print()
 
             file.enfiler((fg_node, niveau + 1))
             file.enfiler((fd_node, niveau + 1))
+
+            print("=============================================================")
 
     return nb_noeuds
     
@@ -168,6 +218,7 @@ def display_tree_graphviz(root):
     Affiche l'arbre de recommandations avec graphviz
     root : racine de l'arbre
     '''
+    print("Affichage de l'arbre de recommandations avec graphviz...")
     dot = graphviz.Digraph()
 
     def add_edges(node):
@@ -183,15 +234,47 @@ def display_tree_graphviz(root):
     dot.render('arbre_recommandations', view=True)
 
 
+def get_artist_top_tracks(artist_uri):
+    '''
+    artist_uri : uri de l'artiste
+    return : top 10 tracks de l'artiste
+    '''
+    return sp.artist_top_tracks(artist_uri)
+
+def choose_track(tracks):
+    '''
+    tracks : catalogue de tracks
+    return : track choisie at random (dict)
+    '''
+    indice = random.randint(0, len(tracks['tracks']) - 1)
+    print(indice)
+    return tracks['tracks'][indice]
+
 def create_playlist() :
     '''
-    Crée une playlist spotify à partir des artistes sélectionnés
+    Crée une playlist spotify à partir des artistes sélectionnés en parcourant l'arbre de recommandations. 
+    Un artiste de l'arbre correspond à une chanson dans la playlist.
     '''
-    pass
+
+    # on récupère les artistes sélectionnés
+
 
 if __name__ == "__main__" :
     main()
-    # drake = sp.search(q="Drake", type="artist", limit=1)
+    # drake = sp.search(q="Tyler, the creator", type="artist", limit=2)
     # for artist in drake['artists']['items']:
     #     print(artist['name'])
     # print(drake['artists'] ['items'][0]['name'])
+    top_tracks = get_artist_top_tracks("spotify:artist:0qQI2kmsvSe2ex9k94T5vu")
+    
+    # print every key in the catalog
+    # for key in top_tracks['tracks'][0].keys():
+        # print(key)
+
+    # print the name of the first track
+    # print(top_tracks['tracks'][0]['name'])
+
+    # print the url of the first track
+    # print(top_tracks['tracks'][0]['external_urls']['spotify'])
+
+    # print(choose_track(top_tracks)['name'])

@@ -39,7 +39,7 @@ def get_similar_artists(artist_name) :
     # print(r.status_code)
     return r.json()
 
-def print_similar_artists(json, debut=0, fin=10):
+def print_similar_artists(json, liste_artistes, debut=0, fin=10):
     '''
     json : liste des artistes similaires format json
     start : index de début
@@ -47,7 +47,7 @@ def print_similar_artists(json, debut=0, fin=10):
     '''
     artists = json['similarartists']['artist']
     for i in range(debut, min(fin, len(artists))):
-        print(f"{i + 1} - {artists[i]['name']}")
+        print(f"\t{i + 1} - {artists[i]['name']}")
     
 
 
