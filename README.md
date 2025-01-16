@@ -48,6 +48,7 @@ Les clés API sont créées depuis ce compte et sont déja initialisées dans le
 
 ## Utilisation
 
+### Selection
 Au lancement, il faut que l'utilisateur saisisse au clavier le nom de l'artiste sur lequel il veut baser sa playlist. (Ici, pour des raisons d'éfficacité, il vaut mieux saisir un artiste assez populaire afin de ne pas être limité trop rapidement.)
 
 Ce premier artiste est la racine de l'arbre de recommandation.
@@ -56,5 +57,17 @@ A  partir de celui-ci, il faut choisir deux autres artistes similaires au premie
 
 Ce processus a lieu ensuite pour chaque noeud de l'arbre jusqu'à atteindre le nombre de noeuds souhaités. Un noeud dans l'arbre = une chanson dans la playlist. Il est possible de le modifier dans la variable `nb_max` au debut du code.
 
+### Suppression
+
+> *Non fonctionnelle pour l'instant*
+
+### Visualisation
+
 Une fois tous les noeuds choisis, une visualisation de l'arbre est créée (fichier pdf).
+
+### Création de la playlist
+
+Une fois revenu sur le terminal, un prompt vous demande le nom que vous souhaitez donner à la playlist. Après avoir saisi, l'algorithme va parcourir l'arbre et choisir au hasard une chanson parmi les 10 plus populaires de chaque artiste, et l'ajouter à la playlist.
+
+Enfin, la fonction renvoie le lien de celle-ci, venant d'être ajoutée à votre profil.
 

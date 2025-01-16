@@ -31,14 +31,15 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.SPOTIFY_CLIENT_ID,
 
 def main() :
     global root
+    global nom_playlist
     '''
     Fonction principale
     '''
     
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
-    query = "Soyoon"
+    query = "Tabber"
     result_type = "artist" # type de résultat recherché
-    nb_max = 7 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    nb_max = 6 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
 
     results = sp.search(q=query, type=result_type, limit=5) 
 
@@ -63,7 +64,8 @@ def main() :
     choix = -1
     while choix < 0 or choix >= len(results['artists']['items']):    
         try :
-            choix = int(input("Choisissez l'artiste que vous recherchez (saisir son numéro) : "))-1
+            # choix = int(input("Choisissez l'artiste que vous recherchez (saisir son numéro) : "))-1
+            choix = 0
             if choix < 0 or choix >= len(results['artists']['items']):
                 raise ValueError("Invalid artist number")
         except ValueError:
@@ -87,6 +89,10 @@ def main() :
     # affichage de l'arbre avec graphviz
     display_tree_graphviz(root)
 
+    nom_playlist = input("Entrez le nom de la playlist : ")
+
+    print(create_playlist(nom_playlist))
+
 
 def construire_arbre(noeud, nb_noeuds, nb_max) :
     '''
@@ -95,6 +101,8 @@ def construire_arbre(noeud, nb_noeuds, nb_max) :
     nb_max : nombre de noeuds maximum (15 par défaut)
 c    construit l'arbre de recommandations à partir de l'artiste racine, arbre construit de manière récursive en largeur
     '''
+    global artistes_choisis
+
     print("nb noeuds : ", nb_noeuds)
     file = File.File()
     file.enfiler((noeud, 1))
@@ -158,25 +166,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
             artistes_choisis.append(nom_gauche)
             artistes_choisis.append(nom_droit)
             
-            print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
-            continuer = int(input("Continuer ? (1 pour continuer, 0 pour supprimer un artiste) : "))
-            print()
-
-            # TODO : supprimer un artiste
-            # donc parcourir l'arbre pour trouver le noeud à supprimer, si pas une feuille, le supprimer et switch avec une feuille
-
-            # if continuer == 0:
-            #     for artist in artistes_choisis:
-            #         print("\t",artistes_choisis.index(artist) + 1, "-", artist)
-            #     suppr = int(input("Quel artiste voulez-vous supprimer ? (saisir son numéro) : "))
-            #     artistes_choisis.pop(suppr - 1)
-
-            #     print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
-            #     print()
-            #     lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-            #     print()
-            #     print("Veuillez selectionner un nouvel artiste (taper son numéro) : ")
-
+            print_artistes_choisis()
 
             print("nb noeuds : ",nb_noeuds)
 
@@ -204,7 +194,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
 
                         artistes_choisis.append(nom_gauche)
 
-                        print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+                        print_artistes_choisis()
                         time.sleep(0.5)
 
                     except (ValueError, IndexError):
@@ -233,7 +223,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
 
                         artistes_choisis.append(nom_droit)
 
-                        print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+                        print_artistes_choisis()
                         time.sleep(0.5)
 
                     except (ValueError, IndexError):
@@ -249,6 +239,46 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
 
             nb_noeuds += 2
             choisi = True
+
+            continuer = int(input("Continuer ? (1 pour continuer, 0 pour supprimer un artiste) : "))
+            print()
+            # os.system('cls')
+
+            # TODO : supprimer un artiste
+
+            # if continuer == 0:
+            #     for artist in artistes_choisis:
+            #         if artist != root.valeur['name']:
+            #             print("\t", artistes_choisis.index(artist) + 1, "-", artist)
+            #     suppr = int(input("Quel artiste voulez-vous supprimer ? (saisir son numéro) : "))
+            #     artiste_a_supprimer = artistes_choisis[suppr - 1]
+
+            #     if artiste_a_supprimer == root.valeur['name']:
+            #         print("Impossible de supprimer l'artiste de base.")
+            #     else:
+            #         noeud_a_supprimer = root.recherche(artiste_a_supprimer, dict=True)
+            #         if noeud_a_supprimer:
+            #             root.supprimer(artiste_a_supprimer)
+            #             artistes_choisis.pop(suppr - 1)
+            #         else:
+            #             print(f"Artiste {artiste_a_supprimer} non trouvé dans l'arbre.")
+
+            #     print("Vous avez supprimé : " + artiste_a_supprimer)
+            #     print(artistes_choisis)
+
+            #     print()
+            #     time.sleep(1)
+            #     lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+            #     print()
+            #     nouveau_choix = int(input("Veuillez selectionner un nouvel artiste (taper son numéro) : "))
+            #     print()
+
+            #     nouvel_artiste = json_artistes['similarartists']['artist'][nouveau_choix - 1]['name']
+            #     print("Vous avez choisi : " + nouvel_artiste)
+            #     artistes_choisis.append(nouvel_artiste)
+            #     print_artistes_choisis()
+
+
             print()
 
             file.enfiler((fg_node, niveau + 1))
@@ -313,16 +343,51 @@ def choose_track(tracks):
     return : track choisie at random (dict)
     '''
     indice = random.randint(0, len(tracks['tracks']) - 1)
-    print(indice)
+    # print(indice)
     return tracks['tracks'][indice]
 
-def create_playlist() :
+
+
+
+def print_artistes_choisis() :
+    '''
+    Affiche les artistes choisis jusqu'à présent
+    '''
+    print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+    
+
+def create_playlist(playlist_name) :
     '''
     Crée une playlist spotify à partir des artistes sélectionnés en parcourant l'arbre de recommandations. 
     Un artiste de l'arbre correspond à une chanson dans la playlist.
     '''
 
-    # on récupère les artistes sélectionnés
+
+    # on parcourt l'arbre en largeur
+    file = File.File()
+    file.enfiler(root)
+    artistes = []
+
+    while not file.est_vide():
+        noeud = file.defiler()
+        artistes.append(noeud)
+
+        if noeud.gauche:
+            file.enfiler(noeud.gauche)
+        if noeud.droit:
+            file.enfiler(noeud.droit)
+
+    # on crée une playlist
+    # playlist = sp.user_playlist_create(sp.me()['id'], playlist_name, public=False, description="Playlist basée sur l'artiste " + root.valeur['name'])
+
+    # on ajoute les chansons à la playlist
+    for artiste in artistes:
+        tracks = get_artist_top_tracks(artiste.valeur['uri'])
+        track = choose_track(tracks)
+        # sp.playlist_add_items(playlist['id'], [track['uri']])
+        print(track['name'])
+    
+    # return playlist['external_urls']['spotify']
 
 
 if __name__ == "__main__" :

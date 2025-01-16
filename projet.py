@@ -7,13 +7,12 @@ nature des valeurs des noeuds : dictionnaire contenant le nom et l'uri de l'arti
 
 features :
     * régénérer un noeud si l'artiste proposé ne convient pas
-    * générer une playlist basée sur les artistes sélectionnés
+    * générer une playlist basée sur les artistes sélectionnés : fait
     * lire/controller la playlist depuis l'appli/site jsp
         -> lecture aléatoire ?
         -> tris
         -> modifier la playlist (déplacer/supprimer une track)
-        -> si noeud supprimé apres-coup, 2 choix :
-            * supprimer tout le sous-arbre
+        -> si noeud supprimé apres-coup :
             * supprimer seulement le noeud en question. dans ce cas, switch l'artiste supprimé avec une feuille
 
 
