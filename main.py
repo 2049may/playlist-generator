@@ -34,7 +34,7 @@ def main() :
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
     query = "Tabber"
 
-    nb_max = 10 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    nb_max = 7 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
     result_type = "artist" # type de résultat recherché
 
     results = sp.search(q=query, type=result_type, limit=5)  # requête à l'API Spotify
@@ -83,7 +83,7 @@ def main() :
     if nom_playlist == "0":
         nom_playlist = "Playlist basée sur l'artiste " + root_name
         
-    print(create_playlist(nom_playlist))
+    create_playlist(nom_playlist)
 
 
 def construire_arbre(noeud, nb_max):
@@ -97,7 +97,6 @@ def construire_arbre(noeud, nb_max):
 
     nb_noeuds = 1
 
-    # print("nb noeuds : ", nb_noeuds)
     file = File.File() # file pour le parcours en largeur
     file.enfiler((noeud, 1)) # chaque élément de la file est un tuple (noeud, niveau)
     artistes_choisis = [root.valeur['name']]
@@ -195,7 +194,7 @@ def process_artists(noeud, json_artistes, nb_noeuds, file, niveau):
         file.enfiler((fd_node, niveau + 1))
 
         print("=============================================================")
-        print("nb noeuds : ", nb_noeuds)
+        # print("nb noeuds : ", nb_noeuds)
 
     return nb_noeuds
 
@@ -341,15 +340,14 @@ def create_playlist(playlist_name) :
     return : url de la playlist créée
     '''
 
-
     # on parcourt l'arbre en largeur
     file = File.File()
     file.enfiler(root)
-    artistes = []
+    playlist = File.File()
 
     while not file.est_vide():
         noeud = file.defiler()
-        artistes.append(noeud)
+        playlist.enfiler(noeud)
 
         if noeud.gauche:
             file.enfiler(noeud.gauche)
@@ -360,7 +358,8 @@ def create_playlist(playlist_name) :
     # playlist = sp.user_playlist_create(sp.me()['id'], playlist_name, public=False, description="Playlist basée sur l'artiste " + root.valeur['name'])
 
     # on ajoute les chansons à la playlist
-    for artiste in artistes:
+    while not playlist.est_vide():
+        artiste = playlist.defiler()
         tracks = get_artist_top_tracks(artiste.valeur['uri'])
         track = choose_track(tracks)
         # sp.playlist_add_items(playlist['id'], [track['uri']])

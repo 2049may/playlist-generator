@@ -3,6 +3,7 @@ import requests
 import json
 import requests_cache
 import cred
+import File
 
 requests_cache.install_cache() # pour eviter de refaire des requetes inutiles
 
@@ -54,7 +55,7 @@ def print_similar_artists(json, debut=0, fin=10):
     artists = json['similarartists']['artist']
     for i in range(debut, min(fin, len(artists))):
         print(f"\t{i + 1} - {artists[i]['name']}")
-    
+
 def get_match(artist1, artist2) :
     '''
     artist1 : nom de l'artiste 1
@@ -71,13 +72,26 @@ def get_match(artist1, artist2) :
     
     return 0
 
+def get_artist_tags(artist_name) :
+    '''
+    artist_name : nom de l'artiste
+    return : liste des tags de l'artiste
+    methode non utilisée car rend le code trop lent
+    '''
+    r = lastfm_get({'method': 'artist.gettoptags', 'artist': artist_name, 'limit': 5})
+    artist_tags = r.json()
+    
+    tags = artist_tags['toptags']['tag']
+    return [tag['name'] for tag in tags[:5]]
 
 if __name__ == "__main__" :
-    # r = get_similar_artists("Jiwoo")
+    r = get_similar_artists("Tabber", [])
     # print(r)
     # print(r['similarartists']['artist'][0])
-    # print_similar_artists(r)
+    print_similar_artists(r)
 
-    print(get_match("Tabber", "DPR LIVE"))
-    print(get_match("Tabber", "Balming Tiger"))
-    print(get_match("Tabber", "Sik-K"))
+    # print(get_artist_tags("Jiwoo"))
+
+    # print(get_match("Tabber", "DPR LIVE"))
+    # print(get_match("Tabber", "Balming Tiger"))
+    print(get_match("Tabber", "Woodz"))

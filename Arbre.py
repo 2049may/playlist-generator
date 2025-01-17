@@ -117,7 +117,35 @@ class Noeud() :
         if self.gauche :
             return self.gauche.recherche_feuille()
 
+    def parcours_infixe(self) :
+        '''parcours infixe de l'arbre'''
+        if self is None :
+            return
+        if self.gauche :
+            self.gauche.parcours_infixe()
+        print(self.valeur, end=" ")
+        if self.droit :
+            self.droit.parcours_infixe()
     
+    def parcours_prefixe(self) :
+        '''parcours préfixe de l'arbre'''
+        if self is None :
+            return
+        print(self.valeur, end=" ")
+        if self.gauche :
+            self.gauche.parcours_prefixe()
+        if self.droit :
+            self.droit.parcours_prefixe()
+
+    def parcours_postfixe(self) :
+        '''parcours postfixe de l'arbre'''
+        if self is None :
+            return
+        if self.gauche :
+            self.gauche.parcours_postfixe()
+        if self.droit :
+            self.droit.parcours_postfixe()
+        print(self.valeur, end=" ")
 
 if __name__ == "__main__" :
 
@@ -127,12 +155,12 @@ if __name__ == "__main__" :
     n3 = Noeud(3)
     n4 = Noeud(4)
     n5 = Noeud(5)
-    n5.gauche = Noeud(6)
     racine.gauche = n1
     racine.droit = n2
     n1.droit = n3
     n2.gauche = n4
     n4.droit = n5
+    n5.gauche = Noeud(6)
 
     ar2 = Noeud()
 
@@ -158,5 +186,9 @@ if __name__ == "__main__" :
     
     # print(racine2.recherche('2', True))
     # print(racine2.recherche('Tabber', True))
-    print(racine.taille())
+    # print(racine.taille())
+
+    racine.parcours_infixe()
+    print()
+    racine.parcours_prefixe()
     
