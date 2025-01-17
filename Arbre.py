@@ -31,6 +31,18 @@ class Noeud() :
             h2 = self.droit.hauteur()
         return 1+max(h1, h2)
 
+    def taille(self) :
+        '''renvoie la taille de l'arbre (nombre de noeuds)'''
+        if self is None :
+            return 0
+        t1 = 0
+        t2 = 0
+        if self.gauche :
+            t1 = self.gauche.taille()
+        if self.droit :
+            t2 = self.droit.taille()
+        return 1+t1+t2
+
     def recherche(self, valeur, dict=False):
         '''recherche une valeur dans l'arbre et renvoie le noeud correspondant, None sinon
         dict : si True, les noeuds sont des dictionnaires, sinon des valeurs simples
@@ -59,7 +71,10 @@ class Noeud() :
         return None
     
     def supprimer(self, valeur):
-        '''supprime un noeud de l'arbre et le remplace par la feuille la plus à droite'''
+        '''supprime un noeud de l'arbre et le remplace par la feuille la plus à droite
+        valeur : valeur du noeud à supprimer
+        non fonctionnel
+        '''
         noeud = self.recherche(valeur, dict=True)
         if noeud is not None:
             parent = self.parent(valeur)
@@ -143,6 +158,5 @@ if __name__ == "__main__" :
     
     # print(racine2.recherche('2', True))
     # print(racine2.recherche('Tabber', True))
-    racine.display_tree()
-
+    print(racine.taille())
     

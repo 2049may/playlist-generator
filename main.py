@@ -34,15 +34,10 @@ def main() :
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
     query = "Tabber"
 
-    nb_max = 12 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    nb_max = 10 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
     result_type = "artist" # type de résultat recherché
 
     results = sp.search(q=query, type=result_type, limit=5)  # requête à l'API Spotify
-
-
-    nom_playlist = query + "vibes" # nom par défaut de la playlist
-    description_playlist = "Playlist basée sur l'artiste " + query
-
 
     # affichage des résultats
     print(f"Résultats pour {query} :")
@@ -52,16 +47,15 @@ def main() :
             genres = f"Genres: {', '.join(artist['genres'])}"
         else:
             genres = "Genres: Unknown"
-        # print(f"{k} - {artist['name']}, {genres}, URI: {artist['uri']}")
         print(f"\t{k} - {artist['name']}, {genres}")
         k += 1
         print()
 
+    # choix de l'artiste racine
     choix = -1
     while choix < 0 or choix >= len(results['artists']['items']):    
         try :
-            # choix = int(input("Choisissez l'artiste que vous recherchez (saisir son numéro) : "))-1
-            choix = 0
+            choix = int(input("Choisissez l'artiste que vous recherchez (saisir son numéro) : "))-1
             if choix < 0 or choix >= len(results['artists']['items']):
                 raise ValueError("Invalid artist number")
         except ValueError:
@@ -80,218 +74,198 @@ def main() :
     root = Noeud({"name": root_name, "uri": root_uri}) # dict contenant le nom et l'uri de l'artiste
 
     # on construit l'arbre de recommandations
-    construire_arbre(root, 1, nb_max)
+    construire_arbre(root, nb_max)
     
     # affichage de l'arbre avec graphviz
     display_tree_graphviz(root)
 
-    nom_playlist = input("Entrez le nom de la playlist : ")
-
+    nom_playlist = input("Entrez le nom de la playlist (0 pour mettre un nom par défaut): ") 
+    if nom_playlist == "0":
+        nom_playlist = "Playlist basée sur l'artiste " + root_name
+        
     print(create_playlist(nom_playlist))
 
 
-def construire_arbre(noeud, nb_noeuds, nb_max) :
+def construire_arbre(noeud, nb_max):
     '''
     noeud : noeud racine de l'arbre au premier appel, puis noeud courant à chaque appel récursif
     nb_noeuds : nombre de noeuds courants
     nb_max : nombre de noeuds maximum (15 par défaut)
-c    construit l'arbre de recommandations à partir de l'artiste racine, arbre construit de manière récursive en largeur
+    construit l'arbre de recommandations à partir de l'artiste racine, arbre construit de manière récursive en largeur
     '''
     global artistes_choisis
 
-    print("nb noeuds : ", nb_noeuds)
-    file = File.File()
-    file.enfiler((noeud, 1))
+    nb_noeuds = 1
+
+    # print("nb noeuds : ", nb_noeuds)
+    file = File.File() # file pour le parcours en largeur
+    file.enfiler((noeud, 1)) # chaque élément de la file est un tuple (noeud, niveau)
     artistes_choisis = [root.valeur['name']]
     niveau = 0
 
-    while not file.est_vide() and nb_noeuds < nb_max:
+    while not file.est_vide() and nb_noeuds <= nb_max:
+        print(nb_noeuds<=nb_max)
         noeud, niveau = file.defiler()
 
-        if niveau >= 4 :
+        if niveau >= 4:
             continue
 
         json_artistes = lastfm.get_similar_artists(noeud.valeur['name'], artistes_choisis)
 
-        if json_artistes['similarartists']['artist'] == [] :
+        if json_artistes['similarartists']['artist'] == []:
             print("Impossible de trouver des artistes similaires pour " + noeud.valeur['name'])
             print()
-            continue # la branche s'arrête si on ne trouve pas d'artistes similaires
+            continue  # la branche s'arrête si on ne trouve pas d'artistes similaires
 
-        debut = 0
-        choisi = False
-
-        print("Artiste : " + noeud.valeur['name'])
-        print()
-
-        while not choisi:
-            lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-            print()
-            choix = input("Veuillez selectionner deux artistes que vous souhaitez conserver (taper les deux numéros séparés d'un espace \n0 pour voir d'autres artistes) : ")
-            print()
-
-            if choix == "0":
-                debut += 10
-                if debut >= 30:
-                    print("Vous avez atteint la fin de la liste.")
-                    print()
-                    debut = 0
-                continue
-
-            try:
-                fg, fd = choix.split(" ")
-                if len(fg) == 0 or len(fd) == 0:
-                    raise ValueError("Invalid number of arguments")
-                fg, fd = int(fg) - 1, int(fd) - 1
-
-                if fg < 0 or fd < 0 or fg >= len(json_artistes['similarartists']['artist']) or fd >= len(json_artistes['similarartists']['artist']):
-                    raise ValueError("Invalid artist number")
-            
-            except ValueError:
-                print("==============================================================================")
-                print("Entrée invalide. Veuillez entrer deux numéros valides séparés par un espace.")
-                print()
-                continue
-            except Exception:
-                print("==============================================================================")
-                print("Entrée invalide. Veuillez entrer exactement deux numéros séparés par un espace.")
-                continue
-
-            nom_gauche = json_artistes['similarartists']['artist'][fg]['name']
-            nom_droit = json_artistes['similarartists']['artist'][fd]['name']
-
-            print("Vous avez choisi : " + nom_gauche + " et " + nom_droit)
-            print()
-
-
-            time.sleep(0.5)
-
-            artistes_choisis.append(nom_gauche)
-            artistes_choisis.append(nom_droit)
-            
-            print_artistes_choisis()
-
-            print("nb noeuds : ",nb_noeuds)
-
-            artiste_gauche = get_artist_by_name(nom_gauche)
-            artiste_droit = get_artist_by_name(nom_droit)
-
-            if artiste_gauche is None :
-                artistes_choisis.remove(nom_gauche)
-                print("Impossible de trouver l'artiste " + nom_gauche)
-                lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-
-                while artiste_gauche is None:
-                    try:
-                        choix = input("Veuillez choisir un autre artiste : ")
-                        print()
-
-                        if len(choix.split()) != 1:
-                            raise ValueError("Invalid number of arguments")
-                        
-                        choix = int(choix)
-                        nom_gauche = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
-                        artiste_gauche = get_artist_by_name(nom_gauche)
-
-                        print("Vous avez choisi : " + nom_gauche)
-
-                        artistes_choisis.append(nom_gauche)
-
-                        print_artistes_choisis()
-                        time.sleep(0.5)
-
-                    except (ValueError, IndexError):
-                        print("Veuillez entrer un nombre valide.")
-                        continue
-
-
-            if artiste_droit is None :
-                artistes_choisis.remove(nom_droit)
-                print("Impossible de trouver l'artiste " + nom_droit)
-                lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-
-                #TODO : gerer le cas ou la liste est vide
-
-                while artiste_droit is None:
-                    try:
-                        choix = input("Veuillez choisir un autre artiste : ")
-                        print()
-
-                        if len(choix.split()) != 1:
-                            raise ValueError("Invalid number of arguments")
-                        
-                        choix = int(choix)
-                        nom_droit = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
-                        artiste_droit = get_artist_by_name(nom_droit)
-
-                        print("Vous avez choisi : " + nom_droit)
-
-                        artistes_choisis.append(nom_droit)
-
-                        print_artistes_choisis()
-                        time.sleep(0.5)
-
-                    except (ValueError, IndexError):
-                        print("Veuillez entrer un nombre valide.")
-                        continue
-
-
-            fg_node = Noeud({'name': artiste_gauche['name'], 'uri': artiste_gauche['uri']})
-            fd_node = Noeud({'name': artiste_droit['name'], 'uri': artiste_droit['uri']})
-
-            noeud.gauche = fg_node
-            noeud.droit = fd_node
-
-            nb_noeuds += 2
-            choisi = True
-
-            continuer = int(input("Continuer ? (1 pour continuer, 0 pour supprimer un artiste) : "))
-            print()
-            # os.system('cls')
-
-            # TODO : supprimer un artiste
-
-            # if continuer == 0:
-            #     for artist in artistes_choisis:
-            #         if artist != root.valeur['name']:
-            #             print("\t", artistes_choisis.index(artist) + 1, "-", artist)
-            #     suppr = int(input("Quel artiste voulez-vous supprimer ? (saisir son numéro) : "))
-            #     artiste_a_supprimer = artistes_choisis[suppr - 1]
-
-            #     if artiste_a_supprimer == root.valeur['name']:
-            #         print("Impossible de supprimer l'artiste de base.")
-            #     else:
-            #         noeud_a_supprimer = root.recherche(artiste_a_supprimer, dict=True)
-            #         if noeud_a_supprimer:
-            #             root.supprimer(artiste_a_supprimer)
-            #             artistes_choisis.pop(suppr - 1)
-            #         else:
-            #             print(f"Artiste {artiste_a_supprimer} non trouvé dans l'arbre.")
-
-            #     print("Vous avez supprimé : " + artiste_a_supprimer)
-            #     print(artistes_choisis)
-
-            #     print()
-            #     time.sleep(1)
-            #     lastfm.print_similar_artists(json_artistes, debut, debut + 10)
-            #     print()
-            #     nouveau_choix = int(input("Veuillez selectionner un nouvel artiste (taper son numéro) : "))
-            #     print()
-
-            #     nouvel_artiste = json_artistes['similarartists']['artist'][nouveau_choix - 1]['name']
-            #     print("Vous avez choisi : " + nouvel_artiste)
-            #     artistes_choisis.append(nouvel_artiste)
-            #     print_artistes_choisis()
-
-
-            print()
-
-            file.enfiler((fg_node, niveau + 1))
-            file.enfiler((fd_node, niveau + 1))
-
-            print("=============================================================")
+        nb_noeuds = process_artists(noeud, json_artistes, nb_noeuds, file, niveau)
 
     return nb_noeuds
+
+
+def process_artists(noeud, json_artistes, nb_noeuds, file, niveau):
+    '''
+    noeud : noeud courant
+    json_artistes : liste des artistes similaires format json
+    nb_noeuds : nombre de noeuds courants
+    file : file pour le parcours en largeur
+    niveau : niveau du noeud courant
+    return : nombre de noeuds après traitement
+    cette fonction gère le choix des artistes à garder dans l'arbre et les ajoute au noeud courant
+    '''
+    debut = 0
+    choisi = False
+
+    print("Artiste : " + noeud.valeur['name'])
+    print()
+
+    while not choisi:
+        lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+        print()
+        choix = input("Veuillez selectionner deux artistes que vous souhaitez conserver (taper les deux numéros séparés d'un espace \n0 pour voir d'autres artistes) : ")
+        print()
+
+        if choix == "0":
+            debut += 10
+            if debut >= 30:
+                print("Vous avez atteint la fin de la liste.")
+                print()
+                debut = 0
+            continue
+
+        fg, fd = valider_choix(choix, json_artistes)
+        if fg is None or fd is None:
+            continue
+
+        nom_gauche = json_artistes['similarartists']['artist'][fg]['name']
+        nom_droit = json_artistes['similarartists']['artist'][fd]['name']
+
+        print("Vous avez choisi : " + nom_gauche + " et " + nom_droit)
+        print()
+
+        time.sleep(0.5)
+
+        artistes_choisis.append(nom_gauche)
+        artistes_choisis.append(nom_droit)
+
+        print_artistes_choisis()
+
+        artiste_gauche = get_artist_by_name(nom_gauche)
+        artiste_droit = get_artist_by_name(nom_droit)
+
+        artiste_gauche = gerer_artiste_nul(artiste_gauche, nom_gauche, json_artistes, debut)
+        artiste_droit = gerer_artiste_nul(artiste_droit, nom_droit, json_artistes, debut)
+
+        fg_node = Noeud({'name': artiste_gauche['name'], 'uri': artiste_gauche['uri']})
+        fd_node = Noeud({'name': artiste_droit['name'], 'uri': artiste_droit['uri']})
+
+        noeud.gauche = fg_node
+        noeud.droit = fd_node
+
+        nb_noeuds = root.taille()
+        choisi = True
+
+        print()
+        # os.system('cls')
+
+        # TODO : ici, suppression d'un artiste (non fonctionnel, code disponible dans backup.py)
+
+        print()
+
+        file.enfiler((fg_node, niveau + 1))
+        file.enfiler((fd_node, niveau + 1))
+
+        print("=============================================================")
+        print("nb noeuds : ", nb_noeuds)
+
+    return nb_noeuds
+
+
+def valider_choix(choix, json_artistes):
+    '''
+    choix : entier, choix de l'utilisateur
+    json_artistes : liste des artistes similaires format json
+    return : fg, fd, indices des artistes choisis
+    gestion d'erreur de saisie
+    '''
+    try:
+        fg, fd = choix.split(" ")
+        if len(fg) == 0 or len(fd) == 0:
+            raise ValueError("Invalid number of arguments")
+        fg, fd = int(fg) - 1, int(fd) - 1
+
+        if fg < 0 or fd < 0 or fg >= len(json_artistes['similarartists']['artist']) or fd >= len(json_artistes['similarartists']['artist']):
+            raise ValueError("Invalid artist number")
+
+        return fg, fd
+
+    except ValueError:
+        print("==============================================================================")
+        print("Entrée invalide. Veuillez entrer deux numéros valides séparés par un espace.")
+        print()
+        return None, None
+    except Exception:
+        print("==============================================================================")
+        print("Entrée invalide. Veuillez entrer exactement deux numéros séparés par un espace.")
+        return None, None
+
+
+def gerer_artiste_nul(artiste, nom, json_artistes, debut):
+    '''
+    artiste : artiste à gérer
+    nom : nom de l'artiste
+    json_artistes : liste des artistes similaires format json
+    debut : index de début de la liste
+    return : artiste choisi
+    Propose à l'utilisateur de choisir un autre artiste si l'artiste est nul
+    '''
+    while artiste is None: #si l'artiste n'est pas nul, on n'entre pas dans la boucle donc complexité O(1)
+        artistes_choisis.remove(nom)
+        print("Impossible de trouver l'artiste " + nom)
+        lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+
+        try:
+            choix = input("Veuillez choisir un autre artiste : ")
+            print()
+
+            if len(choix.split()) != 1:
+                raise ValueError("Veuillez entrer un seul nombre.")
+
+            choix = int(choix)
+            nom = json_artistes['similarartists']['artist'][int(choix) - 1]['name']
+            artiste = get_artist_by_name(nom)
+
+            print("Vous avez choisi : " + nom)
+
+            artistes_choisis.append(nom)
+
+            print_artistes_choisis()
+            time.sleep(0.5)
+
+        except (ValueError, IndexError):
+            print("Veuillez entrer un nombre valide.")
+            continue
+
+    return artiste
     
 def display_tree(node, level=0):
     '''
@@ -352,8 +326,6 @@ def choose_track(tracks):
     return tracks['tracks'][indice]
 
 
-
-
 def print_artistes_choisis() :
     '''
     Affiche les artistes choisis jusqu'à présent
@@ -365,6 +337,8 @@ def create_playlist(playlist_name) :
     '''
     Crée une playlist spotify à partir des artistes sélectionnés en parcourant l'arbre de recommandations. 
     Un artiste de l'arbre correspond à une chanson dans la playlist.
+    playlist_name : nom de la playlist
+    return : url de la playlist créée
     '''
 
 
