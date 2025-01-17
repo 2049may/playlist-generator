@@ -24,11 +24,6 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.SPOTIFY_CLIENT_ID,
                                                redirect_uri="http://127.0.0.1:9090",
                                                scope="user-library-read playlist-modify-public playlist-modify-private"))
 
-#TODO : gestion d'erreurs, ne pas mettre le meme artiste 2 fois
-#TODO : si un artiste n'a pas de similar artists, soit : 
-#                   * la branche s'arrete et on parcourt les autres noeuds jusqu'à ce qu'on ait 15 artistes (plutot ça je pense)
-#                   * soit on regénère un noeud
-
 def main() :
     global root
     global nom_playlist
@@ -38,13 +33,14 @@ def main() :
     
     # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
     query = "Tabber"
-    result_type = "artist" # type de résultat recherché
+
     nb_max = 12 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    result_type = "artist" # type de résultat recherché
 
-    results = sp.search(q=query, type=result_type, limit=5) 
+    results = sp.search(q=query, type=result_type, limit=5)  # requête à l'API Spotify
 
 
-    nom_playlist = query + "vibes"
+    nom_playlist = query + "vibes" # nom par défaut de la playlist
     description_playlist = "Playlist basée sur l'artiste " + query
 
 
@@ -116,6 +112,12 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
             continue
 
         json_artistes = lastfm.get_similar_artists(noeud.valeur['name'], artistes_choisis)
+
+        if json_artistes['similarartists']['artist'] == [] :
+            print("Impossible de trouver des artistes similaires pour " + noeud.valeur['name'])
+            print()
+            continue # la branche s'arrête si on ne trouve pas d'artistes similaires
+
         debut = 0
         choisi = False
 
@@ -160,6 +162,7 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
 
             print("Vous avez choisi : " + nom_gauche + " et " + nom_droit)
             print()
+
 
             time.sleep(0.5)
 
@@ -206,6 +209,8 @@ c    construit l'arbre de recommandations à partir de l'artiste racine, arbre c
                 artistes_choisis.remove(nom_droit)
                 print("Impossible de trouver l'artiste " + nom_droit)
                 lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+
+                #TODO : gerer le cas ou la liste est vide
 
                 while artiste_droit is None:
                     try:
@@ -391,12 +396,12 @@ def create_playlist(playlist_name) :
 
 
 if __name__ == "__main__" :
-    # main()
+    main()
     # bibi = sp.search(q="Bibi", type="artist", limit=5)
     # for artist in bibi['artists']['items']:
     #     print(artist['name'], artist['genres'])
 
-    print(get_artist_by_name("Bibi"))
+    # print(lastfm.get_similar_artists("offonoff", []))
     # print(drake['artists'] ['items'][0]['name'])
     # top_tracks = get_artist_top_tracks("spotify:artist:0qQI2kmsvSe2ex9k94T5vu")
     

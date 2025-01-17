@@ -101,9 +101,6 @@ class Noeud() :
             return self.droit.recherche_feuille()
         if self.gauche :
             return self.gauche.recherche_feuille()
-    
-            
-
 
     
 
@@ -125,13 +122,13 @@ if __name__ == "__main__" :
     ar2 = Noeud()
 
     # print(racine)
-    # print(racine.hauteur())
+    print(racine.hauteur())
     # print(ar2)
     # print(ar2.est_feuille())
     # print(ar2.est_vide())
-    print(racine.recherche(3))
-    print(racine.parent(5))
-    print(racine.recherche_feuille())
+    # print(racine.recherche(3))
+    # print(racine.parent(5))
+    # print(racine.recherche_feuille())
 
     racine2 = Noeud({'name': 'Racine', 'uri': 'http://www.racine.com'})
     n1 = Noeud({'name': '1', 'uri': 'http://www.1.com'})
@@ -144,5 +141,8 @@ if __name__ == "__main__" :
     n1.gauche = n3
     n3.droit = n4
     
-    print(racine2.recherche('2', True))
-    print(racine2.recherche('Tabber', True))
+    # print(racine2.recherche('2', True))
+    # print(racine2.recherche('Tabber', True))
+    racine.display_tree()
+
+    
