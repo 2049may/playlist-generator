@@ -26,20 +26,13 @@ Après installation, ajouter à la variable d'environnement PATH le chemin jusqu
 *(si le code renvoie une erreur, il faut éventuellement ajouter [chemin]\Graphviz\bin\dot.exe)*
 
 ### Utilisation de l'API
-1. L'utilisation de l'API Spotify étant limitée pour les applications à petite échelle, il est impossible pour n'importe qui d'exécuter ce code sans encombre.
-2. Dans ce contexte d'évaluation, vous ne voulez peut être pas utiliser votre propre compte Spotify pour vous connecter (ou peut être que vous n'en avez pas).
-
-Pour remédier à ces deux problèmes, j'ai créé un compte Spotify que vous pouvez (en réalité, que vous *devez*) utiliser pour utiliser ce code (pour des questions de clé API etc...)
-Pour éviter toute erreur, si vous êtes déjà connecté.e à Spotify sur votre navigateur, il faut vous déconnecter.
-A la première exécution, il faudra vous connecter avec le compte suivant :
-
-```
-adresse mail : projection.lestudio@gmail.com
-mot de passe : Algoefficace24
-```
-
-Ces login fonctionnent pour le compte Spotify ainsi que le compte Spotify for Developpers associé. (Inutile de s'y connecter)
-Les clés API sont créées depuis ce compte et sont déja initialisées dans le fichier `cred.py`, vous n'avez rien à faire.
+L'utilisation de l'API Spotify étant limitée pour les applications à petite échelle, il est impossible pour n'importe qui d'exécuter ce code tel quel sans encombre.
+Pour pouvoir éxecuter ce code, il vous faudra bien évidemment un compte spotify, mais aussi un compte spotify for developpers.
+#### Etapes à suivre
+1. Depuis le dashboard Spotify for Developpers, créer une application 
+2. remplir les différents et mettre une adresse callback valide (par exemple : http://127.0.0.1:9000)
+3. Générer vos clés api soit les remplacer directement dans le fichier main.py (dans la variable sp) ou, pour un peu plus de sécurité, définir des constantes dans un fichier cred.py que vous importez.
+4. Faire de même pour Lastfm
 
 ## Utilisation
 
