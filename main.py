@@ -9,8 +9,10 @@ import cred
 import random
 import time
 
-# erreur de path, donc ajout du path de graphviz manuellement
-os.environ["PATH"] += os.pathsep + r"C:\Program Files\Graphviz\bin"
+
+# erreur de path (de mon côté), donc ajout du path de graphviz manuellement, ligne à commenter s'il n'y à pas de'erreur.
+# sinon, ajouter le path de graphviz manuellement dans la ligne suivante
+# os.environ["PATH"] += os.pathsep + r"C:\Program Files\Graphviz\bin"
 
 requests_cache.install_cache() # pour éviter de refaire les requêtes
 
@@ -21,7 +23,7 @@ from spotipy.oauth2 import SpotifyOAuth
 # authentification
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.SPOTIFY_CLIENT_ID,
                                                client_secret=cred.SPOTIFY_CLIENT_SECRET,
-                                               redirect_uri="http://127.0.0.1:9090",
+                                               redirect_uri="http://127.0.0.1:9000",
                                                scope="user-library-read playlist-modify-public playlist-modify-private"))
 
 def main() :
@@ -31,10 +33,9 @@ def main() :
     Fonction principale
     '''
     
-    # query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
-    query = "Tabber"
+    query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
 
-    nb_max = 7 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist
+    nb_max = 12 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist (+- 1)
     result_type = "artist" # type de résultat recherché
 
     results = sp.search(q=query, type=result_type, limit=5)  # requête à l'API Spotify
@@ -81,7 +82,7 @@ def main() :
 
     nom_playlist = input("Entrez le nom de la playlist (0 pour mettre un nom par défaut): ") 
     if nom_playlist == "0":
-        nom_playlist = "Playlist basée sur l'artiste " + root_name
+        nom_playlist = root.valeur['name'] + " playlist"
         
     create_playlist(nom_playlist)
 
@@ -103,7 +104,6 @@ def construire_arbre(noeud, nb_max):
     niveau = 0
 
     while not file.est_vide() and nb_noeuds <= nb_max:
-        print(nb_noeuds<=nb_max)
         noeud, niveau = file.defiler()
 
         if niveau >= 4:
@@ -113,6 +113,7 @@ def construire_arbre(noeud, nb_max):
 
         if json_artistes['similarartists']['artist'] == []:
             print("Impossible de trouver des artistes similaires pour " + noeud.valeur['name'])
+            time.sleep(1)
             print()
             continue  # la branche s'arrête si on ne trouve pas d'artistes similaires
 
@@ -121,7 +122,7 @@ def construire_arbre(noeud, nb_max):
     return nb_noeuds
 
 
-def process_artists(noeud, json_artistes, nb_noeuds, file, niveau):
+def process_artists(noeud, json_artistes, nb_noeuds, file, niveau, debut=0):
     '''
     noeud : noeud courant
     json_artistes : liste des artistes similaires format json
@@ -151,7 +152,7 @@ def process_artists(noeud, json_artistes, nb_noeuds, file, niveau):
                 debut = 0
             continue
 
-        fg, fd = valider_choix(choix, json_artistes)
+        fg, fd = valider_choix(choix, json_artistes, debut)
         if fg is None or fd is None:
             continue
 
@@ -184,11 +185,10 @@ def process_artists(noeud, json_artistes, nb_noeuds, file, niveau):
         choisi = True
 
         print()
-        # os.system('cls')
+        os.system('cls')
 
         # TODO : ici, suppression d'un artiste (non fonctionnel, code disponible dans backup.py)
 
-        print()
 
         file.enfiler((fg_node, niveau + 1))
         file.enfiler((fd_node, niveau + 1))
@@ -199,7 +199,7 @@ def process_artists(noeud, json_artistes, nb_noeuds, file, niveau):
     return nb_noeuds
 
 
-def valider_choix(choix, json_artistes):
+def valider_choix(choix, json_artistes, debut):
     '''
     choix : entier, choix de l'utilisateur
     json_artistes : liste des artistes similaires format json
@@ -209,11 +209,11 @@ def valider_choix(choix, json_artistes):
     try:
         fg, fd = choix.split(" ")
         if len(fg) == 0 or len(fd) == 0:
-            raise ValueError("Invalid number of arguments")
+            raise ValueError("Veuillez entrer deux nombres.")
         fg, fd = int(fg) - 1, int(fd) - 1
 
-        if fg < 0 or fd < 0 or fg >= len(json_artistes['similarartists']['artist']) or fd >= len(json_artistes['similarartists']['artist']):
-            raise ValueError("Invalid artist number")
+        if fg < 0 or fd < 0 or fg >= debut+10 or fd >= debut + 10:
+            raise ValueError("Veuillez entrer des nombres valides.")
 
         return fg, fd
 
@@ -240,7 +240,7 @@ def gerer_artiste_nul(artiste, nom, json_artistes, debut):
     while artiste is None: #si l'artiste n'est pas nul, on n'entre pas dans la boucle donc complexité O(1)
         artistes_choisis.remove(nom)
         print("Impossible de trouver l'artiste " + nom)
-        lastfm.print_similar_artists(json_artistes, debut, debut + 10)
+        lastfm.print_similar_artists(json_artistes, debut=0, fin=15)
 
         try:
             choix = input("Veuillez choisir un autre artiste : ")
@@ -254,11 +254,12 @@ def gerer_artiste_nul(artiste, nom, json_artistes, debut):
             artiste = get_artist_by_name(nom)
 
             print("Vous avez choisi : " + nom)
+            time.sleep(2)
 
             artistes_choisis.append(nom)
 
             print_artistes_choisis()
-            time.sleep(0.5)
+            time.sleep(1)
 
         except (ValueError, IndexError):
             print("Veuillez entrer un nombre valide.")
@@ -330,6 +331,7 @@ def print_artistes_choisis() :
     Affiche les artistes choisis jusqu'à présent
     '''
     print("Artistes choisis jusqu'à présent : " + ", ".join(artistes_choisis))
+    time.sleep(1.5)
     
 
 def create_playlist(playlist_name) :
@@ -345,6 +347,7 @@ def create_playlist(playlist_name) :
     file.enfiler(root)
     playlist = File.File()
 
+
     while not file.est_vide():
         noeud = file.defiler()
         playlist.enfiler(noeud)
@@ -355,21 +358,38 @@ def create_playlist(playlist_name) :
             file.enfiler(noeud.droit)
 
     # on crée une playlist
-    # playlist = sp.user_playlist_create(sp.me()['id'], playlist_name, public=False, description="Playlist basée sur l'artiste " + root.valeur['name'])
+    playlist_sp = sp.user_playlist_create(sp.me()['id'], playlist_name, public=False, description="Playlist basée sur l'artiste " + root.valeur['name'])
 
     # on ajoute les chansons à la playlist
-    while not playlist.est_vide():
+    while not playlist.est_vide() :
         artiste = playlist.defiler()
         tracks = get_artist_top_tracks(artiste.valeur['uri'])
         track = choose_track(tracks)
-        # sp.playlist_add_items(playlist['id'], [track['uri']])
-        print(track['name'])
+        sp.playlist_add_items(playlist_sp['id'], [track['uri']])
+        # print(track['name'])
     
-    # return playlist['external_urls']['spotify']
+    affichage()
+    print("Playlist créée :", playlist_sp['external_urls']['spotify'])
+    return playlist_sp['external_urls']['spotify']
+
+def affichage() :
+    txt = "Création de la playlist"
+
+    for lettre in txt:
+        print(lettre, end="", flush=True)
+        time.sleep(0.1)
+
+    for i in range(10):
+
+        print(".", end="", flush=True)
+        time.sleep(0.5)
+    print()
+
 
 
 if __name__ == "__main__" :
     main()
+
     # bibi = sp.search(q="Bibi", type="artist", limit=5)
     # for artist in bibi['artists']['items']:
     #     print(artist['name'], artist['genres'])
@@ -377,15 +397,5 @@ if __name__ == "__main__" :
     # print(lastfm.get_similar_artists("offonoff", []))
     # print(drake['artists'] ['items'][0]['name'])
     # top_tracks = get_artist_top_tracks("spotify:artist:0qQI2kmsvSe2ex9k94T5vu")
-    
-    # print every key in the catalog
-    # for key in top_tracks['tracks'][0].keys():
-        # print(key)
-
-    # print the name of the first track
-    # print(top_tracks['tracks'][0]['name'])
-
-    # print the url of the first track
-    # print(top_tracks['tracks'][0]['external_urls']['spotify'])
 
     # print(choose_track(top_tracks)['name'])
