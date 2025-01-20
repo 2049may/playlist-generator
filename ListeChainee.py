@@ -123,13 +123,15 @@ if __name__ == "__main__" :
     print("m1 = ", m1.valeur)
     print("m2 = ", m2.valeur)
 
-    print("taille : ", liste.taille())
+    print("taille liste 1 : ", liste.taille())
     print(liste.est_vide())
-    print("taille : ", liste2.taille())
+
+    print("taille liste 2: ", liste2.taille())
     print(liste2.est_vide())
-    print(liste.get_dernier_maillon())
+
     print("--liste 1--")
     liste.afficher_liste()
+    print(liste.get_dernier_maillon())
     liste.ajouter_fin(2)
     liste.afficher_liste()
     liste.ajouter_debut(6)
@@ -139,14 +141,16 @@ if __name__ == "__main__" :
     liste.supprimer_fin()
     liste.afficher_liste()
     print(liste.get_maillon_indice(2))
+    print(liste.get_maillon_indice(1))
 
     print()
     print("--liste 2--")
     
     liste2.afficher_liste()
     liste2.ajouter_debut(3)
-    liste2.ajouter_debut(3)
-    liste2.ajouter_debut(3)
+    liste2.ajouter_debut(5)
+    liste2.ajouter_debut(9)
+    
     liste2.afficher_liste()
     liste2.supprimer_fin()
     liste2.ajouter_fin(2)

@@ -3,7 +3,6 @@ import requests
 import json
 import requests_cache
 import cred
-import File
 
 requests_cache.install_cache() # pour eviter de refaire des requetes inutiles
 

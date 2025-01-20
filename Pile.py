@@ -6,32 +6,60 @@ class Pile() :
         self.contenu = ListeChainee()
 
     def empiler(self, val) :
-        self.contenu.ajouter_fin(val)
+        self.contenu.ajouter_debut(val)
     
     def depiler(self) :
         val = self.get_sommet()
-        self.contenu.supprimer_fin()
+        self.contenu.supprimer_debut()
         return val
     
+    def est_vide(self) :
+        return self.contenu.est_vide()
+    
     def get_sommet(self) :
-        return self.contenu.get_dernier_maillon()
+        return self.contenu.get_tete()
 
     def afficher(self) :
         self.contenu.afficher_liste()
 
-if __name__ == "__main__" :
+    def renverser(self) :
+        p = Pile()
+        while not self.est_vide() :
+            p.empiler(self.depiler())
+        self.contenu = p.contenu
+
+
+if __name__ == "__main__":
     p = Pile()
-    p.depiler()
-    p.afficher()
+    
+    print("empilement de 1, 2 et 3")
+    p.empiler(1)
     p.empiler(2)
-    p.afficher()
+    p.empiler(3)
+    p.afficher() 
+    
+    print("\ndepilement")
+    print(p.depiler())  
+    p.afficher() 
+    
+    print(p.depiler()) 
+    p.afficher() 
+    
+    print(p.depiler()) 
+    p.afficher()  
+    
+    print("\npile vide ?")
+    print(p.est_vide())  
+    
+    print("\nempilement de 4, 5, 6")
+    p.empiler(4)
+    p.empiler(5)
     p.empiler(6)
-    p.afficher()
-    # p.depiler()
-    p.afficher()
-    p.empiler(9)
-    p.empiler(6)
-    p.empiler(181)
-    p.afficher()
-    print(p.depiler())
-    p.afficher()
+    p.afficher() 
+    
+    print("\nrenversement de la pile")
+    p.renverser()
+    p.afficher() 
+
+
+    

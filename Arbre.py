@@ -67,7 +67,6 @@ class Noeud() :
                     return result
             if self.droit:
                 return self.droit.recherche(valeur)
-        # print(f"Node with value {valeur} not found")
         return None
     
     def supprimer(self, valeur):
@@ -162,17 +161,16 @@ if __name__ == "__main__" :
     n4.droit = n5
     n5.gauche = Noeud(6)
 
-    ar2 = Noeud()
+    print("--arbre 1 :-- ")
+    print("racine :", racine)
+    print("hauteur de l'arbre :",  racine.hauteur())
+    racine.recherche(3)
+    print("parent de 5 : ", racine.parent(5))
+    print("feuille la plus à droite : ",racine.recherche_feuille())
+    print("taille de l'arbre : ", racine.taille())
+    print()
 
-    # print(racine)
-    print(racine.hauteur())
-    # print(ar2)
-    # print(ar2.est_feuille())
-    # print(ar2.est_vide())
-    # print(racine.recherche(3))
-    # print(racine.parent(5))
-    # print(racine.recherche_feuille())
-
+    print("--arbre 2 :-- ")
     racine2 = Noeud({'name': 'Racine', 'uri': 'http://www.racine.com'})
     n1 = Noeud({'name': '1', 'uri': 'http://www.1.com'})
     n2 = Noeud({'name': '2', 'uri': 'http://www.2.com'})
@@ -184,11 +182,13 @@ if __name__ == "__main__" :
     n1.gauche = n3
     n3.droit = n4
     
-    # print(racine2.recherche('2', True))
-    # print(racine2.recherche('Tabber', True))
-    # print(racine.taille())
+    racine2.recherche('2', True)
+    racine2.recherche('Tabber', True)
+    print(racine2.taille())
 
     racine.parcours_infixe()
     print()
     racine.parcours_prefixe()
+    print()
+    racine.parcours_postfixe()
     

@@ -22,17 +22,18 @@ class File() :
     def afficher(self) :
         self.contenu.afficher_liste()
     
+    
 
 if __name__ == "__main__" :
 
     file = File()
-    # file.afficher()
-    # print(file.est_vide())
     file.enfiler(1)
     file.enfiler(2)
     file.enfiler(3)
+    print("file après enfilement de 1, 2et 3:")
     file.afficher()
-    print(file.est_vide())
-    # print(file.est_vide())
-    print("elt suppr : ", file.defiler())
+
+    print("defilement de la file:")
+    print(file.defiler())
+    print("file apres défilement:")
     file.afficher()
