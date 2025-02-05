@@ -23,7 +23,7 @@ from spotipy.oauth2 import SpotifyOAuth
 # authentification
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.SPOTIFY_CLIENT_ID,
                                                client_secret=cred.SPOTIFY_CLIENT_SECRET,
-                                               redirect_uri="http://127.0.0.1:9000",
+                                               redirect_uri="http://127.0.0.1:9090",
                                                scope="user-library-read playlist-modify-public playlist-modify-private"))
 
 def main() :
@@ -35,7 +35,7 @@ def main() :
     
     query = input("Sur quel artiste voulez-vous baser votre playlist ? ")
 
-    nb_max = 12 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist (+- 1)
+    nb_max = 7 # nombre maximum d'artistes dans l'arbre = nombre de chansons dans la playlist (+- 1)
     result_type = "artist" # type de résultat recherché
 
     results = sp.search(q=query, type=result_type, limit=5)  # requête à l'API Spotify
